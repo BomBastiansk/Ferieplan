@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ferie & Afløser Oversigt</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        header h1 {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            font-size: 15px;
+            opacity: 0.9;
+        }
+
+        .search-box {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            margin-bottom: 2rem;
+        }
+
+        .search-box label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-box input::placeholder {
+            color: #999;
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .error-message {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            color: #d32f2f;
+            font-size: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            margin-bottom: 2rem;
+        }
+
+        .error-message i {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            margin-bottom: 2rem;
+        }
+
+        .result-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .result-header h2 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            letter-spacing: 1px;
+        }
+
+        .result-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .weeks-container {
+            padding: 2rem;
+        }
+
+        .week-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 1.5rem;
+            border-radius: 10px;
+            background: #f8f9ff;
+            margin-bottom: 1rem;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .week-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+
+        .week-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .week-badge {
+            background: #667eea;
+            color: white;
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .week-info {
+            flex: 1;
+        }
+
+        .week-info p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .afloeser-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .no-weeks {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #999;
+        }
+
+        .no-weeks p {
+            font-size: 16px;
+            margin-bottom: 1rem;
+        }
+
+        .no-weeks .icon {
+            font-size: 48px;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .info-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .info-item {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .info-item strong {
+            display: block;
+            color: #333;
+            font-size: 14px;
+            margin-bottom: 0.3rem;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin-top: 10px;
+            }
+
+            header h1 {
+                font-size: 24px;
+            }
+
+            .search-box {
+                padding: 1.5rem;
+            }
+
+            .result-header {
+                padding: 1.5rem;
+            }
+
+            .result-header h2 {
+                font-size: 22px;
+            }
+
+            .week-item {
+                gap: 12px;
+                padding: 1rem;
+            }
+
+            .week-badge {
+                width: 60px;
+                height: 60px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📋 Ferie & Afløser</h1>
+            <p>Søg efter initialer for at se ferieperioder og afløsere</p>
+        </header>
+
+        <div class="search-box">
+            <label for="search">Søg efter initialer</label>
+            <input 
+                type="text" 
+                id="search" 
+                placeholder="F.eks. DAVD, RTT, MAEI..." 
+                maxlength="4"
+                autocomplete="off"
+            >
+        </div>
+
+        <div class="results" id="results">
+            <!-- Resultat vises her -->
+        </div>
+    </div>
+
+    <script>
+        const vagtData = [
+          { initialer: "AALB", uge28: null, uge29: null, uge30: "APH", uge31: "APH", uge32: "ERFR" },
+          { initialer: "CEVS", uge28: null, uge29: "MTHO", uge30: "SSR", uge31: "SSR", uge32: "MEO" },
+          { initialer: "DAVD", uge28: "MUTO", uge29: "MUTO", uge30: "MTHO", uge31: "RSJ", uge32: "MVN" },
+          { initialer: "ERFR", uge28: null, uge29: null, uge30: "PEE", uge31: null, uge32: null },
+          { initialer: "MTHO", uge28: null, uge29: null, uge30: null, uge31: "JBF", uge32: "JBF" },
+          { initialer: "MUTO", uge28: null, uge29: null, uge30: "MTHO", uge31: "RSJ", uge32: "OER" },
+          { initialer: "MEO", uge28: null, uge29: "MISH", uge30: "MISH", uge31: "ERFR", uge32: null },
+          { initialer: "MTIJ", uge28: null, uge29: "KOES", uge30: "KOES", uge31: "LENL", uge32: null },
+          { initialer: "MVN", uge28: null, uge29: null, uge30: "SSR", uge31: "SSR", uge32: null },
+          { initialer: "RSJ", uge28: null, uge29: "ERFR", uge30: "TWI", uge31: null, uge32: "HLLE" },
+          { initialer: "SSR", uge28: null, uge29: null, uge30: null, uge31: null, uge32: null },
+          { initialer: "CKH", uge28: null, uge29: null, uge30: "PTM", uge31: "PTM", uge32: "APH" },
+          { initialer: "JSY", uge28: "CKH", uge29: "PTM", uge30: "MICR", uge31: null, uge32: null },
+          { initialer: "KRBR", uge28: null, uge29: null, uge30: "SINE", uge31: "SINE", uge32: "SINE" },
+          { initialer: "MICR", uge28: null, uge29: null, uge30: null, uge31: "JSY", uge32: "JSY" },
+          { initialer: "PTM", uge28: null, uge29: null, uge30: null, uge31: null, uge32: "JNSL" },
+          { initialer: "SINE", uge28: "MICR", uge29: "MICR", uge30: null, uge31: null, uge32: null },
+          { initialer: "AL", uge28: "LAEN", uge29: "LAEN", uge30: null, uge31: null, uge32: null },
+          { initialer: "APH", uge28: null, uge29: null, uge30: null, uge31: null, uge32: null },
+          { initialer: "ASB", uge28: "SKAA", uge29: "SKAA", uge30: "LENL", uge31: "LENL", uge32: null },
+          { initialer: "BIRS", uge28: "MTIJ", uge29: null, uge30: null, uge31: null, uge32: null },
+          { initialer: "CADY", uge28: "CEVS", uge29: "JPM", uge30: "JPM", uge31: null, uge32: null },
+          { initialer: "CECG", uge28: null, uge29: null, uge30: null, uge31: null, uge32: null },
+          { initialer: "CMAL", uge28: null, uge29: null, uge30: null, uge31: null, uge32: null },
+          { initialer: "DBRS", uge28: "HANA", uge29: null, uge30: null, uge31: null, uge32: null },
+          { initialer: "DLAV", uge28: "TOBN", uge29: null, uge30: null, uge31: null, uge32: "ULSC" },
+          { initialer: "HANA", uge28: null, uge29: "DBRS", uge30: "DBRS", uge31: "DBRS", uge32: null },
+          { initialer: "HJUE", uge28: "ABAL", uge29: "ABAL", uge30: "PNNN", uge31: null, uge32: null },
+          { initialer: "HLLE", uge28: null, uge29: "PAKA", uge30: "PAKA", uge31: "PAKA", uge32: null },
+          { initialer: "HWH", uge28: null, uge29: "MVN", uge30: "KOES", uge31: "STNL", uge32: null },
+          { initialer: "JAMG", uge28: "ULSC", uge29: "DLAV", uge30: "DLAV", uge31: "DLAV", uge32: null },
+          { initialer: "JAWU", uge28: null, uge29: "TWI", uge30: "TWI", uge31: "TWI", uge32: null },
+          { initialer: "JBF", uge28: "THAA", uge29: "THAA", uge30: "PNNN", uge31: null, uge32: null },
+          { initialer: "JNSL", uge28: "HWH", uge29: "CKH", uge30: "APH", uge31: null, uge32: null },
+          { initialer: "JPM", uge28: "HANA", uge29: null, uge30: null, uge31: null, uge32: null },
+          { initialer: "KABH", uge28: "MISH", uge29: "BIRS", uge30: "BIRS", uge31: "BIRS", uge32: "JAMG" },
+          { initialer: "KOES", uge28: "PAKA", uge29: null, uge30: null, uge31: "JSY", uge32: "ASB" },
+          { initialer: "LAEN", uge28: null, uge29: null, uge30: "AL", uge31: "AL", uge32: "AL" },
+          { initialer: "LENL", uge28: "PEE", uge29: "PEE", uge30: null, uge31: null, uge32: null },
+          { initialer: "MISH", uge28: null, uge29: null, uge30: null, uge31: "CADY", uge32: "CADY" },
+          { initialer: "MSS", uge28: null, uge29: null, uge30: null, uge31: null, uge32: "NMK" },
+          { initialer: "MWR", uge28: null, uge29: null, uge30: "PLEK", uge31: "PLEK", uge32: "PLEK" },
+          { initialer: "NMK", uge28: "MVN", uge29: "MSS", uge30: "MSS", uge31: "MSS", uge32: null },
+          { initialer: "OER", uge28: "CECG", uge29: "CECG", uge30: "CECG", uge31: "CECG", uge32: null },
+          { initialer: "PAKA", uge28: null, uge29: null, uge30: null, uge31: null, uge32: "HWH" },
+          { initialer: "PEE", uge28: null, uge29: null, uge30: null, uge31: "HJUE", uge32: "HJUE" },
+          { initialer: "PLEK", uge28: "KRBR", uge29: "KRBR", uge30: null, uge31: null, uge32: null },
+          { initialer: "PNNN", uge28: "MWR", uge29: "MWR", uge30: null, uge31: "JNSL", uge32: "HWH" },
+          { initialer: "STNL", uge28: null, uge29: null, uge30: null, uge31: null, uge32: "JPM" },
+          { initialer: "SKAA", uge28: null, uge29: null, uge30: "CMAL", uge31: "CMAL", uge32: "CMAL" },
+          { initialer: "THAA", uge28: null, uge29: null, uge30: "TOBN", uge31: "TOBN", uge32: "TOBN" },
+          { initialer: "TOBN", uge28: null, uge29: null, uge30: null, uge31: null, uge32: null },
+          { initialer: "TWI", uge28: null, uge29: null, uge30: null, uge31: null, uge32: "JAWU" },
+          { initialer: "ULSC", uge28: null, uge29: "STNL", uge30: "STNL", uge31: "STNL", uge32: null },
+          { initialer: "THMS", uge28: "RTT", uge29: "DLRA", uge30: null, uge31: null, uge32: "RTT" },
+          { initialer: "MAEI", uge28: "LCH", uge29: "MDUP", uge30: "THMS", uge31: "THMS", uge32: null },
+          { initialer: "LCH", uge28: null, uge29: "MDUP", uge30: "DLRA", uge31: "DLRA", uge32: null },
+          { initialer: "MDUP", uge28: null, uge29: null, uge30: "THMS", uge31: "DLRA", uge32: null },
+          { initialer: "RTT", uge28: null, uge29: "DLRA", uge30: "THMS", uge31: "THMS", uge32: null },
+          { initialer: "DLRA", uge28: null, uge29: null, uge30: null, uge31: null, uge32: null },
+          { initialer: "MOND", uge28: null, uge29: "DLRA", uge30: "DLRA", uge31: "DLRA", uge32: null }
+        ];
+
+        const uger = [28, 29, 30, 31, 32];
+        const searchInput = document.getElementById('search');
+        const resultsDiv = document.getElementById('results');
+
+        function search() {
+            const query = searchInput.value.toUpperCase().trim();
+            resultsDiv.innerHTML = '';
+
+            if (!query) {
+                resultsDiv.classList.remove('active');
+                return;
+            }
+
+            if (!/^[A-Z]{1,4}$/.test(query)) {
+                resultsDiv.innerHTML = '<div class="error-message">⚠️ Initialer skal være 1-4 bogstaver</div>';
+                resultsDiv.classList.add('active');
+                return;
+            }
+
+            const person = vagtData.find(p => p.initialer === query);
+
+            if (!person) {
+                resultsDiv.innerHTML = `<div class="error-message">⚠️ Ingen person fundet med initialer "${query}"</div>`;
+                resultsDiv.classList.add('active');
+                return;
+            }
+
+            const ferieUger = [];
+            uger.forEach(uge => {
+                const afloeser = person[`uge${uge}`];
+                if (afloeser) {
+                    ferieUger.push({ uge, afloeser });
+                }
+            });
+
+            let html = `
+                <div class="result-card">
+                    <div class="result-header">
+                        <h2>${person.initialer}</h2>
+                        <p>${ferieUger.length} ferieperiode${ferieUger.length !== 1 ? 'r' : ''} i uge 28-32</p>
+                    </div>
+            `;
+
+            if (ferieUger.length === 0) {
+                html += `
+                    <div class="no-weeks">
+                        <div class="icon">✓</div>
+                        <p>Ingen ferie registreret i periode 28-32</p>
+                    </div>
+                `;
+            } else {
+                html += '<div class="weeks-container">';
+                ferieUger.forEach(({ uge, afloeser }) => {
+                    html += `
+                        <div class="week-item">
+                            <div class="week-badge">Uge ${uge}</div>
+                            <div class="week-info">
+                                <p>Ferie</p>
+                                <span class="afloeser-badge">${afloeser}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+            resultsDiv.classList.add('active');
+        }
+
+        searchInput.addEventListener('input', search);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') search();
+        });
+
+        // Focus search on load
+        searchInput.focus();
+    </script>
+</body>
+</html>
